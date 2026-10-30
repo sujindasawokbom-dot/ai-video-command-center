@@ -1,11 +1,11 @@
-const json = (statusCode, payload) => ({ statusCode, headers: { 'Content-Type': 'application/json; charset=utf-8' }, body: JSON.stringify(payload) });
+const json = (statusCode, payload) => new Response(JSON.stringify(payload), { status: statusCode, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
 
-export default async function handler(event) {
-  if (event.httpMethod !== 'POST') return json(405, { error: 'รองรับเฉพาะคำขอ POST' });
+export default async function handler(request) {
+  if (request.method !== 'POST') return json(405, { error: 'รองรับเฉพาะคำขอ POST' });
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.API_KEY;
   if (!apiKey) return json(503, { error: 'ยังไม่ได้ตั้งค่า API key ใน Netlify (GEMINI_API_KEY)' });
   let input;
-  try { input = JSON.parse(event.body || '{}'); } catch { return json(400, { error: 'อ่านข้อมูลคำขอไม่สำเร็จ' }); }
+  try { input = await request.json(); } catch { return json(400, { error: 'อ่านข้อมูลคำขอไม่สำเร็จ' }); }
   const brief = String(input.brief || '').trim();
   if (!brief && !input.image?.data) return json(400, { error: 'กรุณาใส่หัวข้อหรือเลือกรูปสินค้า' });
   const prompt = [
