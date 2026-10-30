@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI VIDEO COMMAND CENTER</title>
+<style>
+:root {
+  --site-primary: #12D6B0;
+  --site-secondary: #163451;
+  --site-background: #07111D;
+  --site-on-primary: #041A19;
+  --site-on-secondary: #E8F4FF;
+  --site-on-background: #EAF4FF;
+  --site-font-body: Inter, "Noto Sans Thai", system-ui, sans-serif;
+  --site-font-heading: Inter, "Noto Sans Thai", system-ui, sans-serif;
+  --site-heading-scale: 1;
+  --site-spacing-scale: 1;
+  --site-radius-scale: 1;
+  --site-decoration-opacity: 1;
+  color-scheme: light dark;
+  --panel: light-dark(#F8FBFF, #0C1B2A);
+  --panel-2: light-dark(#EDF4FA, #10263A);
+  --text: light-dark(#14283C, #EAF4FF);
+  --muted: light-dark(#587087, #91A8BC);
+  --border: light-dark(#D7E3EE, #1D3A50);
+  --field: light-dark(#FFFFFF, #071522);
+  --good: #21D6A4;
+  --warn: #FFC857;
+  --bad: #FF6F78;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--site-font-body); background: var(--site-background); color: var(--site-on-background); }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+.app { min-height: 100vh; width: 100%; border-radius: 0; background-color: var(--site-background); color: var(--site-on-background); }
+.topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 24px; border-bottom:1px solid var(--border); background:var(--panel); }
+.brand { display:flex; align-items:center; gap:12px; min-width:0; }
+.logo { width:42px; height:42px; display:grid; place-items:center; border-radius:13px; background:var(--site-primary); color:var(--site-on-primary); font-weight:900; font-size:24px; }
+.brand h1 { font-size:calc(1.25rem * var(--site-heading-scale)); margin:0; letter-spacing:.04em; }
+.brand p { color:var(--muted); margin:4px 0 0; font-size:.78rem; }
+.top-actions { display:flex; gap:8px; align-items:center; }
+.pill, .btn { border:1px solid var(--border); border-radius:calc(10px * var(--site-radius-scale)); padding:10px 13px; background:var(--panel-2); color:var(--text); }
+.btn.primary { background:var(--site-primary); border-color:var(--site-primary); color:var(--site-on-primary); font-weight:800; }
+.btn.ghost { background:transparent; }
+.layout { display:grid; grid-template-columns:220px minmax(0,1fr); min-height:calc(100vh - 80px); }
+.sidebar { padding:18px 12px; border-right:1px solid var(--border); background:var(--panel); }
+.nav { display:grid; gap:6px; }
+.nav button { text-align:left; border:1px solid transparent; border-radius:10px; padding:12px 14px; color:var(--muted); background:transparent; }
+.nav button.active, .nav button:hover { color:var(--text); background:var(--panel-2); border-color:var(--border); }
+.side-note { margin-top:26px; border:1px solid var(--border); border-radius:12px; padding:14px; color:var(--muted); font-size:.82rem; line-height:1.5; }
+main { padding:22px; min-width:0; }
+.page-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:18px; }
+.page-head h2 { font-size:calc(1.55rem * var(--site-heading-scale)); margin:0 0 6px; }
+.page-head p { color:var(--muted); margin:0; }
+.stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:18px; }
+.stat, .card { background:var(--panel); border:1px solid var(--border); border-radius:calc(15px * var(--site-radius-scale)); }
+.stat { padding:15px; }
+.stat .label { color:var(--muted); font-size:.83rem; }
+.stat .value { font-size:1.65rem; font-weight:800; margin:8px 0 4px; }
+.stat .hint { color:var(--muted); font-size:.78rem; }
+.workspace { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr); gap:16px; align-items:start; }
+.card { padding:18px; min-width:0; }
+.card h3 { margin:0 0 6px; font-size:1.08rem; }
+.sub { color:var(--muted); font-size:.84rem; margin:0 0 16px; line-height:1.5; }
+.mode-switch { display:flex; gap:8px; padding:5px; border-radius:12px; background:var(--panel-2); margin-bottom:16px; }
+.mode-switch button { flex:1; border:0; border-radius:9px; padding:11px 8px; color:var(--muted); background:transparent; }
+.mode-switch button.active { color:var(--site-on-primary); background:var(--site-primary); font-weight:800; }
+.field-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.field { display:grid; gap:6px; min-width:0; }
+.field.full { grid-column:1/-1; }
+label { color:var(--muted); font-size:.83rem; }
+input, select, textarea { width:100%; color:var(--text); background:var(--field); border:1px solid var(--border); border-radius:9px; padding:11px 12px; outline:none; }
+textarea { resize:vertical; min-height:100px; line-height:1.55; }
+input:focus, select:focus, textarea:focus { border-color:var(--site-primary); box-shadow:0 0 0 2px color-mix(in srgb, var(--site-primary) 18%, transparent); }
+.templates { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-bottom:14px; }
+.template { border:1px solid var(--border); background:var(--panel-2); border-radius:11px; padding:12px 9px; text-align:left; color:var(--text); }
+.template span { display:block; font-size:1.3rem; margin-bottom:7px; }
+.template strong { display:block; font-size:.82rem; }
+.template small { color:var(--muted); display:block; margin-top:4px; }
+.actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+.output { min-height:155px; white-space:pre-wrap; line-height:1.6; font-size:.9rem; }
+.result-tabs { display:flex; gap:6px; margin:10px 0; }
+.result-tabs button { border:1px solid var(--border); background:transparent; color:var(--muted); padding:8px 10px; border-radius:8px; }
+.result-tabs button.active { color:var(--site-primary); border-color:var(--site-primary); }
+.scene-list { display:grid; gap:10px; }
+.scene { display:grid; grid-template-columns:62px minmax(0,1fr); gap:12px; align-items:start; padding:11px; background:var(--panel-2); border:1px solid var(--border); border-radius:11px; }
+.scene-time { color:var(--site-primary); font-size:.78rem; font-weight:800; }
+.scene strong { display:block; margin-bottom:4px; }
+.scene p { color:var(--muted); margin:0; font-size:.84rem; line-height:1.5; }
+.lower { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px; }
+.variation-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+.variation { border:1px solid var(--border); border-radius:10px; padding:12px; background:var(--panel-2); }
+.variation b { display:block; font-size:.84rem; }
+.variation p { color:var(--muted); font-size:.8rem; margin:6px 0 0; }
+.project-list { display:grid; gap:8px; }
+.project-row { display:flex; justify-content:space-between; gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); }
+.project-row:last-child { border-bottom:0; }
+.project-row strong { display:block; font-size:.88rem; }
+.project-row small { display:block; color:var(--muted); margin-top:4px; }
+.badge { white-space:nowrap; padding:5px 8px; border-radius:7px; font-size:.74rem; background:color-mix(in srgb, var(--warn) 18%, transparent); color:var(--warn); }
+.badge.done { background:color-mix(in srgb, var(--good) 15%, transparent); color:var(--good); }
+.empty { color:var(--muted); padding:16px 0; font-size:.88rem; }
+.toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:var(--site-primary); color:var(--site-on-primary); padding:12px 18px; border-radius:10px; box-shadow:0 8px 28px #0004; display:none; z-index:10; font-weight:700; }
+.reference-box { margin-top:14px; padding:14px; border:1px dashed var(--border); border-radius:12px; background:var(--panel-2); }
+.reference-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.reference-item { min-width:0; padding:10px; border:1px solid var(--border); border-radius:10px; background:var(--panel); }
+.reference-item input[type=file] { padding:8px; font-size:.78rem; }
+.reference-preview { display:none; width:100%; height:125px; margin-top:8px; object-fit:contain; background:var(--field); border-radius:8px; }
+.reference-name { color:var(--muted); font-size:.75rem; overflow-wrap:anywhere; margin-top:6px; }
+.reference-note { color:var(--muted); font-size:.8rem; line-height:1.5; margin:10px 0 0; }
+.one-click { border:2px solid var(--site-primary); border-radius:16px; padding:18px; margin:14px 0; background:linear-gradient(135deg,color-mix(in srgb,var(--site-primary) 12%,var(--panel)),var(--panel-2)); }
+.one-click h3 { font-size:1.25rem; margin:0 0 6px; }
+.one-click p { color:var(--muted); margin:0 0 14px; line-height:1.5; }
+.upload-product { display:flex; align-items:center; justify-content:center; gap:10px; min-height:130px; border:2px dashed var(--site-primary); border-radius:12px; background:var(--field); padding:16px; text-align:center; }
+.upload-product input { max-width:100%; }
+.btn.ai-main { width:100%; margin-top:12px; padding:16px; font-size:1.05rem; }
+#studio > .card:first-child > .mode-switch, #studio > .card:first-child > #templateArea, #studio > .card:first-child > .field-grid, #studio > .card:first-child > .reference-box, #studio > .card:first-child > .actions { display:none !important; }
+.hidden { display:none !important; }
+@media(max-width:1050px) { .layout {grid-template-columns:1fr;} .sidebar {border-right:0;border-bottom:1px solid var(--border);padding:8px 12px;} .nav {grid-template-columns:repeat(4,minmax(0,1fr));} .nav button {text-align:center;padding:10px 5px;font-size:.82rem;} .side-note {display:none;} .workspace {grid-template-columns:1fr;} }
+@media(max-width:680px) { .topbar {padding:14px;align-items:flex-start;} .brand h1 {font-size:1rem;} .brand p {font-size:.68rem;} .top-actions .pill {display:none;} .layout {display:block;} main {padding:14px;} .page-head {display:block;} .page-head .btn {margin-top:12px;} .stats {grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;} .stat {padding:12px;} .stat .value {font-size:1.3rem;} .nav {grid-template-columns:repeat(4,minmax(0,1fr));} .nav button {font-size:.72rem;padding:9px 2px;} .field-grid {grid-template-columns:1fr;} .templates {grid-template-columns:repeat(2,minmax(0,1fr));} .reference-grid {grid-template-columns:1fr;} .reference-preview {height:180px;} .lower {grid-template-columns:1fr;} .variation-grid {grid-template-columns:1fr;} .card {padding:14px;} }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="brand"><div class="logo">▶</div><div><h1>AI VIDEO COMMAND CENTER</h1><p>FROM IDEA TO VIDEO WITH AI · SEMI-AUTOMATED WORKFLOW</p></div></div>
+    <div class="top-actions"><span class="pill">MVP PREVIEW</span><button class="btn ghost" id="exportBtn">ส่งออกข้อมูล</button></div>
+  </header>
+  <div class="layout">
+    <aside class="sidebar"><nav class="nav" aria-label="เมนูหลัก">
+      <button class="active" data-scroll="dashboard">▦ ภาพรวม</button><button data-scroll="studio">✦ Prompt Studio</button><button data-scroll="scenes">▤ Scene Director</button><button id="geminiNav">↗ Gemini Workflow</button><button data-scroll="library">▱ คลังโปรเจกต์</button><button data-scroll="library">▷ ประวัติวิดีโอ</button><button data-scroll="studio">◇ แม่แบบ</button><button data-scroll="cost">◉ ต้นทุน</button>
+    </nav><div class="side-note"><b>โหมดประหยัดค่าใช้จ่าย</b><br>ต้นแบบนี้ไม่เรียก API และไม่ส่งข้อมูลออกจากหน้าเว็บ การสร้างวิดีโอยังคงทำใน Gemini ด้วยตนเอง</div></aside>
+    <main>
+      <section id="dashboard">
+        <div class="page-head"><div><h2>ศูนย์ควบคุมวิดีโอ AI</h2><p>วางแผน Prompt จัดการโปรเจกต์ และส่งงานไปยัง Gemini จากจุดเดียว</p></div><button class="btn primary" id="newBtn">＋ โปรเจกต์ใหม่</button></div>
+        <div class="stats">
+          <div class="stat"><div class="label">โปรเจกต์ทั้งหมด</div><div class="value" id="projectCount">0</div><div class="hint">โปรเจกต์ที่บันทึกในเบราว์เซอร์</div></div>
+          <div class="stat"><div class="label">Prompt ที่สร้าง</div><div class="value" id="promptCount">0</div><div class="hint">นับจากการสร้างในต้นแบบนี้</div></div>
+          <div class="stat"><div class="label">รอสร้างวิดีโอ</div><div class="value" id="waitingCount">0</div><div class="hint">อัปเดตตามสถานะที่คุณบันทึก</div></div>
+          <div class="stat"><div class="label">วิดีโอที่ทำเสร็จ</div><div class="value" id="doneCount">0</div><div class="hint">บันทึกสถานะด้วยตนเอง</div></div>
+        </div>
+      </section>
+      <section class="workspace" id="studio">
+        <div class="card">
+          <h3>✦ สร้างวิดีโอแบบง่าย</h3><p class="sub">ไม่ต้องกรอกหลายช่อง แค่ใส่รูปสินค้า แล้วให้ AI วางแผนให้ทั้งหมด</p>
+          <div class="one-click"><h3>① ใส่รูปสินค้า</h3><p>เลือกรูปสินค้าชัด ๆ เพียง 1 รูป ระบบจะเลือกแนวโฆษณา ฉาก มุมกล้อง และลำดับเรื่องให้อัตโนมัติ</p><label class="upload-product" for="productImage">📷 แตะเพื่อเลือกรูปสินค้าจากมือถือ<br><input id="productImage" type="file" accept="image/*"></label><img id="productPreview" class="reference-preview" alt="ตัวอย่างรูปสินค้า"><div id="productName" class="reference-name">ยังไม่ได้เลือกรูปสินค้า</div><button class="btn primary ai-main" id="aiOneClickBtn">✦ ให้ AI คิดให้ทั้งหมด</button><p style="margin:10px 0 0;font-size:.78rem">ระบบจะเตรียมแนวคิดและ Prompt ให้โดยอัตโนมัติ คุณไม่ต้องตั้งค่ากล้องหรือฉากเอง</p></div>
+          <div class="mode-switch"><button class="active" id="quickMode">QUICK MODE · แม่แบบ</button><button id="directorMode">DIRECTOR MODE · อิสระ</button></div>
+          <div id="templateArea"><label>เลือกประเภทวิดีโอ</label><div class="templates">
+            <button class="template" data-template="โฆษณาสินค้า"><span>🛍️</span><strong>โฆษณาสินค้า</strong><small>เน้นจุดขายสินค้า</small></button>
+            <button class="template" data-template="รีวิวสินค้า"><span>✧</span><strong>รีวิวสินค้า</strong><small>สาธิตการใช้งาน</small></button>
+            <button class="template" data-template="แนะนำแบรนด์"><span>▦</span><strong>แนะนำแบรนด์</strong><small>ภาพลักษณ์องค์กร</small></button>
+            <button class="template" data-template="วิดีโอสาระความรู้"><span>▤</span><strong>สาระความรู้</strong><small>อธิบายให้เข้าใจง่าย</small></button>
+            <button class="template" data-template="ท่องเที่ยว"><span>✈</span><strong>ท่องเที่ยว</strong><small>บรรยากาศและสถานที่</small></button>
+            <button class="template" data-template="อาหารและเครื่องดื่ม"><span>♨</span><strong>อาหารและเครื่องดื่ม</strong><small>ภาพอาหารน่ารับประทาน</small></button>
+          </div></div>
+          <div class="field-grid">
+            <div class="field full"><label for="creativeBrief">บอกสิ่งที่อยากได้ (ช่องหลักช่องเดียว)</label><textarea id="creativeBrief" placeholder="เช่น ทำวิดีโอโปรโมตอ่างซิงค์ ให้พรีเซ็นเตอร์ดูน่าเชื่อถือ เน้นวัสดุและการใช้งานจริง สำหรับลง Facebook Reels"></textarea><small style="color:var(--muted)">ไม่จำเป็นต้องคิดเรื่องกล้อง แสง ฉาก หรือ Storyboard เอง ระบบจะช่วยกำหนดให้</small></div>
+            <div class="field full"><label for="projectName">ชื่อโปรเจกต์</label><input id="projectName" placeholder="เช่น โปรโมตอ่างซิงค์รุ่นใหม่"></div>
+            <div class="field"><label for="kind">ประเภทวิดีโอ</label><select id="kind"><option>โฆษณาสินค้า</option><option>รีวิวสินค้า</option><option>แนะนำแบรนด์</option><option>วิดีโอสาระความรู้</option><option>ท่องเที่ยว</option><option>อาหารและเครื่องดื่ม</option><option>อื่น ๆ</option></select></div>
+            <div class="field"><label for="duration">ระยะเวลา</label><select id="duration"><option value="8">8 วินาที</option><option value="10" selected>10 วินาที</option><option value="15">15 วินาที</option><option value="30">30 วินาที</option></select></div>
+            <div class="field"><label for="ratio">อัตราส่วนภาพ</label><select id="ratio"><option value="9:16">9:16 · แนวตั้ง/Reels</option><option value="16:9" selected>16:9 · แนวนอน</option><option value="1:1">1:1 · สี่เหลี่ยม</option></select></div>
+            <div class="field"><label for="style">สไตล์ภาพ</label><select id="style"><option>Cinematic / Realistic</option><option>Commercial / Premium</option><option>Documentary / Natural</option><option>3D Animation</option><option>Minimal / Clean</option><option>Energetic / Social Media</option></select></div>
+            <div class="field full"><label for="subject">สินค้า / หัวข้อหลัก</label><input id="subject" placeholder="เช่น อ่างซิงค์สเตนเลส มีคนใช้งานจริง"></div>
+            <div class="field"><label for="location">สถานที่ / ฉาก</label><input id="location" placeholder="เช่น ห้องครัวโมเดิร์น"></div>
+            <div class="field"><label for="camera">มุมกล้อง / การเคลื่อนกล้อง</label><select id="camera"><option>Dolly-in · กล้องเคลื่อนเข้า</option><option>Slow pan · แพนช้า ๆ</option><option>Tracking shot · เคลื่อนตาม</option><option>Macro close-up · ภาพใกล้รายละเอียด</option><option>Wide establishing shot · ภาพกว้าง</option><option>Handheld documentary · สมจริงแบบสารคดี</option></select></div>
+            <div class="field full"><label for="action">เหตุการณ์หรือการเคลื่อนไหว</label><textarea id="action" placeholder="อธิบายสิ่งที่เกิดขึ้นในวิดีโอ เช่น น้ำไหลลงอ่าง มีคนล้างผัก กล้องเคลื่อนผ่านสินค้า"></textarea></div>
+            <div class="field full"><label for="restrictions">ข้อห้าม / สิ่งที่ต้องคงเดิม</label><input id="restrictions" value="ไม่มีข้อความบนวิดีโอ ไม่มีโลโก้ที่ไม่ได้ระบุ รักษารูปทรงสินค้าให้สมจริง"></div>
+            <div class="field full"><label for="freePrompt">คำสั่งเพิ่มเติมภาษาไทย (ไม่บังคับ)</label><textarea id="freePrompt" placeholder="พิมพ์สิ่งที่ต้องการเพิ่ม หรือใช้ DIRECTOR MODE เพื่อเริ่มจากคำสั่งอิสระ"></textarea></div>
+          </div>
+          <div class="actions"><button class="btn primary" id="autoCreateBtn">✦ คิดแทนฉันและสร้าง Prompt</button><button class="btn" id="generateBtn">ประกอบจากการตั้งค่าปัจจุบัน</button><button class="btn" id="clearBtn">ล้างแบบฟอร์ม</button></div>
+        </div>
+        <div class="card">
+          <h3>✧ Prompt ที่พร้อมใช้งาน</h3><p class="sub">ตรวจสอบข้อความก่อนคัดลอกไปสร้างวิดีโอ</p>
+          <div class="result-tabs"><button class="active" data-result="main">Prompt หลัก</button><button data-result="a">เวอร์ชัน A</button><button data-result="b">เวอร์ชัน B</button><button data-result="c">เวอร์ชัน C</button></div>
+          <textarea id="output" class="output" placeholder="Prompt จะปรากฏที่นี่หลังจากกด ‘ประกอบ Prompt’"></textarea>
+          <div class="actions"><button class="btn primary" id="copyBtn">▣ คัดลอก Prompt</button><button class="btn" id="variationBtn">⟳ สร้าง 3 รูปแบบ</button><button class="btn" id="saveBtn">▣ บันทึกโปรเจกต์</button><button class="btn" id="openGeminiBtn">↗ เปิด Gemini</button></div>
+          <p class="sub" style="margin-top:12px;margin-bottom:0">หมายเหตุ: การเปิด Gemini จะไม่ส่ง Prompt หรือสั่งสร้างวิดีโอให้อัตโนมัติ คุณต้องวางข้อความและยืนยันการสร้างใน Gemini เอง</p>
+        </div>
+      </section>
+      <section class="lower">
+        <div class="card" id="scenes"><h3>▤ Scene Director</h3><p class="sub">Storyboard ตัวอย่างจะถูกแบ่งตามระยะเวลาวิดีโอที่เลือก</p><div id="sceneList" class="scene-list"><div class="empty">กรอกหัวข้อแล้วกด “ประกอบ Prompt” เพื่อสร้างแผนฉากตัวอย่าง</div></div></div>
+        <div class="card"><h3>⟳ Prompt Variations</h3><p class="sub">สร้างทางเลือกที่เปลี่ยนมุมกล้อง สถานที่ หรือแสง โดยคงหัวข้อหลัก</p><div class="variation-grid"><div class="variation"><b>เวอร์ชัน A</b><p>เปลี่ยนมุมกล้อง</p></div><div class="variation"><b>เวอร์ชัน B</b><p>เปลี่ยนสถานที่</p></div><div class="variation"><b>เวอร์ชัน C</b><p>เปลี่ยนแสงและบรรยากาศ</p></div></div><div class="actions"><button class="btn" id="makeVariations">สร้างเวอร์ชันจาก Prompt ปัจจุบัน</button></div></div>
+      </section>
+      <section class="lower">
+        <div class="card" id="library"><h3>▱ คลังโปรเจกต์ / ประวัติ</h3><p class="sub">ข้อมูลจะบันทึกไว้ในเบราว์เซอร์เครื่องนี้ (local storage)</p><div class="project-list" id="projectList"><div class="empty">ยังไม่มีโปรเจกต์ที่บันทึก</div></div></div>
+        <div class="card" id="cost"><h3>◉ การควบคุมต้นทุน</h3><p class="sub">ต้นแบบนี้ไม่มีการเรียก API ระบบจะแสดงค่าใช้จ่าย API ที่คุณบันทึกเองเท่านั้น</p><div class="field-grid"><div class="field"><label for="costAmount">ค่าใช้จ่ายที่ต้องการบันทึก</label><input id="costAmount" type="number" min="0" step="0.01" value="0"></div><div class="field"><label for="costNote">หมายเหตุ</label><input id="costNote" placeholder="เช่น ค่า API / ค่าบริการรายเดือน"></div></div><div class="actions"><button class="btn primary" id="saveCost">บันทึกค่าใช้จ่าย</button></div><div style="margin-top:14px;font-size:1.5rem;font-weight:800" id="totalCost">฿0.00</div><div class="sub" style="margin:4px 0 0">ยอดรวมที่คุณบันทึกในต้นแบบนี้ · ไม่ใช่การเรียกเก็บเงินจริง</div></div>
+      </section>
+    </main>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+const $ = id => document.getElementById(id);
+const STORAGE_KEY = 'aivcc_mvp_v1';
+let state = { projects: [], prompts: 0, costs: [], variations: {}, currentResult: 'main', mode: 'quick' };
+let currentPrompts = { main:'', a:'', b:'', c:'' };
+function notify(message) { const t=$('toast'); t.textContent=message; t.style.display='block'; clearTimeout(notify.timer); notify.timer=setTimeout(()=>t.style.display='none',2600); }
+function loadState(){ try { const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null'); if(saved) state={...state,...saved}; } catch(e){} render(); }
+function persist(){ localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); render(); }
+function makePrompt(overrides={}) {
+  const kind=overrides.kind||$('kind').value, subject=overrides.subject||$('subject').value.trim()||'the main subject', location=overrides.location||$('location').value.trim()||'a visually appealing, realistic setting', action=overrides.action||$('action').value.trim()||'show the subject clearly with natural, believable movement', style=overrides.style||$('style').value, camera=overrides.camera||$('camera').selectedOptions[0].text, duration=overrides.duration||$('duration').value, ratio=overrides.ratio||$('ratio').value, restrictions=overrides.restrictions||$('restrictions').value.trim(), free=$('freePrompt').value.trim();
+  const refs=[['Product reference',$('productImage').files[0]]].filter(x=>x[1]).map(x=>`${x[0]}: ${x[1].name}`);
+  const referenceDirection=refs.length?`\nREFERENCE IMAGE TO ATTACH IN GEMINI:\n${refs.join('\n')}\nUse the attached product image as the exact product reference; preserve its shape, color, proportions, materials, and visible branding. Create an attractive commercial video with a strong opening, a clear product demonstration, premium detail shots, and a memorable final hero shot. Do not invent product features or claims. The user must attach this image file in Gemini along with this prompt.`:'';
+  return `Create a ${duration}-second ${kind.toLowerCase()} video featuring ${subject}.\nSetting: ${location}.\nAction: ${action}.\nCamera: ${camera}.\nVisual style: ${style}.\nComposition: ${ratio} aspect ratio; clear subject, coherent motion, realistic details, polished production quality.\nAudio: natural ambient sound and subtle supporting sound design where appropriate; no spoken words unless specifically requested.\nRestrictions: ${restrictions||'Avoid unwanted text and logos.'}${free?'\nAdditional direction: '+free:''}${referenceDirection}\nKeep the visual continuity consistent throughout the clip. Do not add unrequested claims, text, logos, or objects.`;
+}
+function autoPlan(){
+  const brief=$('creativeBrief').value.trim();
+  const refs=[['productImage','สินค้า']].filter(([id])=>$(id).files&&$(id).files[0]).map(([id,label])=>label);
+  const productFile=$('productImage').files&&$('productImage').files[0];
+  const textInput=(brief+' '+$('subject').value+' '+$('freePrompt').value).trim();
+  if(!textInput&&!refs.length){notify('กรุณาใส่รูปสินค้าก่อนครับ');$('productImage').click();return false;}
+  const t=textInput.toLowerCase();
+  let kind='โฆษณาสินค้า';
+  if(/รีวิว|review|ทดลองใช้|ข้อดีข้อเสีย/.test(t))kind='รีวิวสินค้า';
+  else if(/สอน|ความรู้|อธิบาย|how to|วิธีทำ|เคล็ดลับ/.test(t))kind='วิดีโอสาระความรู้';
+  else if(/ท่องเที่ยว|เที่ยว|สถานที่|รีสอร์ต|โรงแรม/.test(t))kind='ท่องเที่ยว';
+  else if(/อาหาร|เครื่องดื่ม|เมนู|ทำกิน|กาแฟ|ขนม/.test(t))kind='อาหารและเครื่องดื่ม';
+  else if(/แบรนด์|องค์กร|บริษัท|แนะนำตัว|ภาพลักษณ์/.test(t))kind='แนะนำแบรนด์';
+  $('kind').value=kind;
+  if(/reels|tiktok|ติ๊กต็อก|แนวตั้ง|shorts|มือถือ/.test(t))$('ratio').value='9:16';
+  else if(/youtube|ยูทูบ|แนวนอน|พรีเซนเทชัน|จอใหญ่/.test(t))$('ratio').value='16:9';
+  else $('ratio').value='9:16';
+  if(/หรู|พรีเมียม|luxury|ไฮเอนด์|เนี๊ยบ/.test(t))$('style').value='Commercial / Premium';
+  else if(/การ์ตูน|แอนิเมชัน|animation|3d|สามมิติ/.test(t))$('style').value='3D Animation';
+  else if(/สารคดี|ธรรมชาติ|จริง|สมจริง|ชีวิตประจำวัน/.test(t))$('style').value='Documentary / Natural';
+  else if(/สนุก|ไวรัล|ตื่นเต้น|วัยรุ่น|กระตุ้น/.test(t))$('style').value='Energetic / Social Media';
+  else $('style').value='Cinematic / Realistic';
+  $('duration').value=/อธิบาย|สอน|ขั้นตอน|หลายจุด|เปรียบเทียบ|เล่าเรื่อง/.test(t)?'15':'10';
+  if(/ครัว|อ่างซิงค์|ซิงค์|เตา|กระทะ|บ้าน|ห้องน้ำ|วัสดุก่อสร้าง/.test(t))$('location').value='ห้องตัวอย่างหรือพื้นที่ใช้งานจริงที่สะอาด ทันสมัย และเข้ากับสินค้า';
+  else if(/อาหาร|กาแฟ|ขนม|เครื่องดื่ม/.test(t))$('location').value='พื้นที่จัดเตรียมอาหารที่สะอาด แสงธรรมชาติสวย และดูน่ารับประทาน';
+  else if(/ท่องเที่ยว|เที่ยว|โรงแรม|รีสอร์ต/.test(t))$('location').value='สถานที่จริงที่มีเอกลักษณ์ แสงสวย และบรรยากาศเป็นธรรมชาติ';
+  else $('location').value='ฉากที่ดูเป็นมืออาชีพ สะอาด และสนับสนุนหัวข้อหลัก';
+  if(/พรีเซ็นเตอร์|presenter|คนพูด|คนแนะนำ|ผู้ชาย|ผู้หญิง/.test(t))$('camera').value='Tracking shot · เคลื่อนตาม';
+  else if(/รายละเอียด|วัสดุ|พื้นผิว|ใกล้|คุณภาพ/.test(t)||$('productImage').files.length)$('camera').value='Macro close-up · ภาพใกล้รายละเอียด';
+  else $('camera').value='Dolly-in · กล้องเคลื่อนเข้า';
+  if(brief){$('subject').value=brief.length>110?brief.slice(0,107)+'...':brief;if(!$('projectName').value.trim())$('projectName').value=brief.length>42?brief.slice(0,39)+'...':brief;} else if(productFile){$('subject').value='สินค้าตามรูปอ้างอิง '+productFile.name.replace(/\.[^.]+$/,'');if(!$('projectName').value.trim())$('projectName').value='วิดีโอโฆษณา '+productFile.name.replace(/\.[^.]+$/,'');}
+  const actions=[];
+  if($('productImage').files.length)actions.push('Use the uploaded product photo as the exact visual reference. Show the product clearly with premium detail shots and a plausible real-world use demonstration; preserve its shape, color, proportions, materials, and visible branding.');
+  if(/โปรโมต|โฆษณา|ขาย|สินค้า|แบรนด์/.test(t))actions.push('Open with a visually compelling hook, demonstrate the key benefit, then finish with a memorable product hero shot.');
+  else actions.push('Open with a clear visual hook, develop the main idea in a logical sequence, and finish with a strong closing shot.');
+  $('action').value=actions.join(' ');
+  $('restrictions').value='รักษารูปลักษณ์บุคคลและสินค้าให้ตรงภาพอ้างอิง ห้ามบิดเบือนสัดส่วนหรือรายละเอียดสำคัญ ไม่สร้างข้อความ โลโก้ หรือคุณสมบัติที่ไม่มีข้อมูล หลีกเลี่ยงการเคลื่อนไหวผิดธรรมชาติและการเปลี่ยนฉากกระโดด';
+  const autoNote='Auto Director: independently choose professional pacing, lighting, shot transitions, composition, and a clear beginning, middle, and ending. Prioritize the uploaded product reference. Avoid unnecessary visual clutter.';
+  $('freePrompt').value=[brief,autoNote].filter(Boolean).join('\n');
+  return true;
+}
+function sceneData(){ const d=Number($('duration').value), chunks=d<=10?3:4, result=[]; for(let i=0;i<chunks;i++){const start=Math.round(d*i/chunks),end=Math.round(d*(i+1)/chunks);const titles=['เปิดภาพและแนะนำหัวข้อ','เน้นรายละเอียดสำคัญ','แสดงการใช้งานหรือจุดเด่น','ปิดท้ายด้วยภาพที่จดจำได้'];const cams=['Wide shot / ค่อย ๆ เคลื่อนเข้า','Medium shot / เคลื่อนผ่านรายละเอียด','Close-up / ติดตามการเคลื่อนไหว','Hero shot / หยุดกล้องอย่างนุ่มนวล'];result.push({time:`${start}–${end} วินาที`,title:titles[i]||'เสริมรายละเอียด',camera:cams[i]||'ภาพต่อเนื่องอย่างเป็นธรรมชาติ'});}return result; }
+function renderScenes(){ $('sceneList').innerHTML=sceneData().map(s=>`<div class="scene"><div class="scene-time">${s.time}</div><div><strong>${s.title}</strong><p>${s.camera}</p></div></div>`).join(''); }
+function buildVariations(){ const base=makePrompt(); currentPrompts.main=base; currentPrompts.a=base.replace(/Camera:.*\n/,'Camera: slow tracking shot followed by a macro close-up, smooth controlled movement.\n'); currentPrompts.b=base.replace(/Setting:.*\n/,'Setting: a bright premium showroom kitchen with natural window light.\n'); currentPrompts.c=base.replace(/Visual style:.*\n/,'Visual style: cinematic premium commercial, warm directional lighting, elegant reflections and soft contrast.\n'); state.variations=currentPrompts; $('output').value=currentPrompts[state.currentResult]||base; notify('สร้าง Prompt 3 เวอร์ชันแล้ว'); }
+function render(){ $('projectCount').textContent=state.projects.length; $('promptCount').textContent=state.prompts; $('waitingCount').textContent=state.projects.filter(p=>p.status==='รอสร้าง').length; $('doneCount').textContent=state.projects.filter(p=>p.status==='สร้างเสร็จ').length; const total=state.costs.reduce((sum,c)=>sum+Number(c.amount||0),0); $('totalCost').textContent='฿'+total.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}); const list=$('projectList'); if(!state.projects.length){list.innerHTML='<div class="empty">ยังไม่มีโปรเจกต์ที่บันทึก</div>';return;} list.innerHTML=state.projects.slice().reverse().map(p=>`<div class="project-row"><div><strong>${escapeHTML(p.name)}</strong><small>${escapeHTML(p.kind)} · ${escapeHTML(p.date)}</small></div><div style="display:flex;gap:6px;align-items:center"><span class="badge ${p.status==='สร้างเสร็จ'?'done':''}">${escapeHTML(p.status)}</span><button class="btn" data-load="${p.id}" style="padding:6px 8px">เปิด</button></div></div>`).join(''); list.querySelectorAll('[data-load]').forEach(b=>b.addEventListener('click',()=>loadProject(b.dataset.load))); }
+function escapeHTML(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function generate(){ const prompt=makePrompt(); currentPrompts={main:prompt,a:'',b:'',c:''}; state.currentResult='main'; state.prompts++; $('output').value=prompt; document.querySelectorAll('[data-result]').forEach(b=>b.classList.toggle('active',b.dataset.result==='main')); renderScenes(); persist(); notify('ประกอบ Prompt เรียบร้อย'); }
+function saveProject(){const prompt=$('output').value.trim(); if(!prompt){notify('กรุณาประกอบ Prompt ก่อนบันทึก');return;} const name=$('projectName').value.trim()||$('subject').value.trim()||'โปรเจกต์ใหม่'; const existing=state.projects.find(p=>p.name===name); const p={id:existing?.id||Date.now().toString(),name,kind:$('kind').value,subject:$('subject').value,prompt,variations:currentPrompts,duration:$('duration').value,ratio:$('ratio').value,style:$('style').value,location:$('location').value,action:$('action').value,restrictions:$('restrictions').value,status:existing?.status||'รอสร้าง',date:new Date().toLocaleDateString('th-TH')}; if(existing) Object.assign(existing,p); else state.projects.push(p); persist(); notify('บันทึกโปรเจกต์แล้ว'); }
+function loadProject(id){const p=state.projects.find(x=>x.id===id);if(!p)return; $('projectName').value=p.name;$('kind').value=p.kind;$('subject').value=p.subject||'';$('output').value=p.prompt;['duration','ratio','style','location','action','restrictions'].forEach(k=>{if(p[k]!==undefined)$(k).value=p[k];});currentPrompts=p.variations||{main:p.prompt,a:'',b:'',c:''};document.querySelector('#studio').scrollIntoView({behavior:'smooth'});notify('เปิดโปรเจกต์แล้ว');}
+$('quickMode').addEventListener('click',()=>{state.mode='quick';$('quickMode').classList.add('active');$('directorMode').classList.remove('active');$('templateArea').classList.remove('hidden');});
+$('directorMode').addEventListener('click',()=>{state.mode='director';$('directorMode').classList.add('active');$('quickMode').classList.remove('active');$('templateArea').classList.add('hidden');$('freePrompt').focus();});
+document.querySelectorAll('[data-template]').forEach(b=>b.addEventListener('click',()=>{$('kind').value=b.dataset.template;notify('เลือกแม่แบบ: '+b.dataset.template);}));
+$('generateBtn').addEventListener('click',generate); $('variationBtn').addEventListener('click',buildVariations); $('makeVariations').addEventListener('click',buildVariations); $('saveBtn').addEventListener('click',saveProject);
+$('autoCreateBtn').addEventListener('click',()=>{if(autoPlan()){generate();notify('ระบบวางแผนและสร้าง Prompt ให้แล้ว');}});
+document.querySelectorAll('[data-result]').forEach(b=>b.addEventListener('click',()=>{state.currentResult=b.dataset.result;document.querySelectorAll('[data-result]').forEach(x=>x.classList.toggle('active',x===b));$('output').value=currentPrompts[state.currentResult]||'';}));
+$('copyBtn').addEventListener('click',async()=>{const text=$('output').value;if(!text){notify('ยังไม่มี Prompt ให้คัดลอก');return;}try{await navigator.clipboard.writeText(text);notify('คัดลอก Prompt แล้ว');}catch(e){$('output').select();document.execCommand('copy');notify('เลือกข้อความแล้ว หากคัดลอกไม่สำเร็จให้คัดลอกด้วยตนเอง');}});
+[['productImage','productPreview','productName']].forEach(([inputId,previewId,nameId])=>$(inputId).addEventListener('change',e=>{const file=e.target.files&&e.target.files[0],preview=$(previewId);if(!file){preview.removeAttribute('src');preview.style.display='none';$(nameId).textContent='ยังไม่ได้เลือกรูปสินค้า';return;}if(!file.type.startsWith('image/')){notify('กรุณาเลือกไฟล์ภาพ');e.target.value='';return;}preview.src=URL.createObjectURL(file);preview.style.display='block';$(nameId).textContent=file.name;notify('เพิ่มรูปสินค้าแล้ว: '+file.name);}));
+async function openGemini(){const prompt=$('output').value.trim();if(!prompt){notify('กรุณาประกอบ Prompt ก่อนเปิด Gemini');return;}const geminiWindow=window.open('https://gemini.google.com/app','_blank','noopener');try{await navigator.clipboard.writeText(prompt);notify('คัดลอก Prompt แล้ว · วางใน Gemini แล้วกดสร้างด้วยตนเอง');}catch(e){$('output').focus();$('output').select();notify('เปิด Gemini แล้ว · คัดลอก Prompt ด้วยตนเอง');}if(!geminiWindow)notify('เบราว์เซอร์บล็อกหน้าต่างใหม่ · อนุญาตป๊อปอัปแล้วลองอีกครั้ง');}
+$('openGeminiBtn').addEventListener('click',openGemini);$('geminiNav').addEventListener('click',openGemini);
+$('clearBtn').addEventListener('click',()=>{['creativeBrief','projectName','subject','location','action','freePrompt'].forEach(id=>$(id).value='');['productImage'].forEach(id=>$(id).value='');[['productPreview','productName']].forEach(([imgId,nameId])=>{$(imgId).removeAttribute('src');$(imgId).style.display='none';$(nameId).textContent='ยังไม่ได้เลือกรูปสินค้า';});$('output').value='';currentPrompts={main:'',a:'',b:'',c:''};notify('ล้างแบบฟอร์มแล้ว');});
+ $('aiOneClickBtn').addEventListener('click',()=>{if(!$('productImage').files.length){notify('กรุณาเลือกรูปสินค้าก่อนครับ');$('productImage').click();return;}if(autoPlan()){generate();notify('วางแผนโฆษณาจากรูปสินค้าให้แล้ว');$('output').scrollIntoView({behavior:'smooth',block:'center'});}});
+$('newBtn').addEventListener('click',()=>{document.querySelector('#studio').scrollIntoView({behavior:'smooth'});$('projectName').focus();});
+$('saveCost').addEventListener('click',()=>{const amount=Number($('costAmount').value);if(!Number.isFinite(amount)||amount<0){notify('กรุณากรอกจำนวนเงินที่ถูกต้อง');return;}state.costs.push({amount,note:$('costNote').value,date:new Date().toLocaleDateString('th-TH')});$('costNote').value='';persist();notify('บันทึกค่าใช้จ่ายแล้ว');});
+$('exportBtn').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ai-video-command-center-data.json';a.click();URL.revokeObjectURL(a.href);notify('ส่งออกข้อมูลแล้ว');});
+document.querySelectorAll('[data-scroll]').forEach(b=>b.addEventListener('click',()=>document.getElementById(b.dataset.scroll).scrollIntoView({behavior:'smooth'})));
+loadState();
+</script>
+</body>
+</html>
