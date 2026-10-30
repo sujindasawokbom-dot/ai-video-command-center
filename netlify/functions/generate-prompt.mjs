@@ -21,12 +21,12 @@ export default async function handler(request) {
   const parts = [{ text: prompt }];
   if (input.image?.data && input.image?.mimeType) {
     const raw = String(input.image.data).replace(/^data:[^,]+,/, '');
-    if (raw.length > 7000000) return json(413, { error: 'ไฟล์รูปใหญ่เกินไป กรุณาใช้รูปไม่เกิน 5 MB' });
+    if (raw.length > 4900000) return json(413, { error: 'ไฟล์รูปใหญ่เกินไป กรุณาใช้รูปไม่เกิน 3.5 MB' });
     if (!/^image\/(jpeg|png|webp)$/.test(input.image.mimeType)) return json(415, { error: 'รองรับรูป JPG, PNG หรือ WebP' });
     parts.push({ inline_data: { mime_type: input.image.mimeType, data: raw } });
   }
   try {
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=' + encodeURIComponent(apiKey);
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=' + encodeURIComponent(apiKey);
     const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ role: 'user', parts }], generationConfig: { temperature: 0.7, maxOutputTokens: 1400 } }) });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) {
@@ -36,6 +36,6 @@ export default async function handler(request) {
     }
     const text = result?.candidates?.[0]?.content?.parts?.map(part => part.text || '').join('').trim();
     if (!text) return json(502, { error: 'AI ไม่ได้ส่ง Prompt กลับมา กรุณาลองใหม่' });
-    return json(200, { prompt: text, model: 'gemini-2.5-flash-lite' });
+    return json(200, { prompt: text, model: 'gemini-3.5-flash-lite' });
   } catch { return json(502, { error: 'ติดต่อบริการ AI ไม่สำเร็จ กรุณาตรวจอินเทอร์เน็ตแล้วลองใหม่' }); }
 }
